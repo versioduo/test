@@ -145,7 +145,7 @@ class V2Repeat extends V2WebModule {
         this.#note.element.value = number;
         range.value = number;
 
-        text.textContent = V2MIDI.Note.name(number);
+        text.textContent = V2MIDI.Note.getName(number);
         if (V2MIDI.Note.isBlack(number)) {
           text.classList.add('is-dark');
           text.classList.remove('has-background-light');

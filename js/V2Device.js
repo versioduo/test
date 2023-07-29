@@ -9,8 +9,10 @@ class V2Device extends V2Connection {
   }
 
   connect(device) {
-    if (this.version)
+    if (this.version) {
       this.version.remove();
+      this.version = null;
+    }
 
     this.device.disconnect();
     for (const notifier of this.notifiers.reset)

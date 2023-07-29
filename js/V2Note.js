@@ -81,7 +81,7 @@ class V2Note extends V2WebModule {
       let range = null;
 
       const updateNote = (number) => {
-        text.textContent = V2MIDI.Note.name(number);
+        text.textContent = V2MIDI.Note.getName(number);
         if (V2MIDI.Note.isBlack(number)) {
           text.classList.add('is-dark');
           text.classList.remove('has-background-light');
