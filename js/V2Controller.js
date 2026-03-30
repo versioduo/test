@@ -60,6 +60,7 @@ class V2Controller extends V2WebModule {
 
       field.addElement('span', (e) => {
         e.classList.add('select');
+        e.classList.add('is-rounded');
 
         V2Web.addElement(e, 'select', (select) => {
           this.#channel = select;
@@ -82,7 +83,7 @@ class V2Controller extends V2WebModule {
         this.#controller.value = number;
         text.textContent = V2MIDI.CC.Name[number] || 'CC ' + number;
         range.value = number;
-      }
+      };
 
       new V2WebField(this.canvas, (field) => {
         field.addButton((e) => {
