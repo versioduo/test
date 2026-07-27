@@ -5,17 +5,17 @@ class V2Log extends V2WebModule {
 
   // Early initialization to store messages before the section is added.
   constructor() {
-    super('log', 'Log', 'View system events');
+    super('log', '--console', 'Log', 'View System Events');
 
-    V2Web.addButtons(this.canvas, (buttons) => {
-      V2Web.addButton(buttons, (e) => {
+    new V2WebMenu(this.canvas, (menu) => {
+      menu.addElement('button', (e) => {
         e.textContent = 'Status';
         e.addEventListener('click', () => {
           this.#device.printStatus();
         });
       });
 
-      V2Web.addButton(buttons, (e) => {
+      menu.addElement('button', (e) => {
         e.textContent = 'Clear';
         e.addEventListener('click', () => {
           this.#clear();
@@ -25,9 +25,12 @@ class V2Log extends V2WebModule {
 
     V2Web.addElement(this.canvas, 'div', (e) => {
       this.#element = e;
-      e.classList.add('log');
-      e.classList.add('content');
-      e.classList.add('is-small');
+      e.style.height = '20rem';
+      e.style.overflowX = 'auto';
+      e.style.overflowY = 'scroll';
+      e.style.padding = '0.5rem';
+      e.style.width = '100%';
+      e.style.whiteSpace = 'nowrap';
     });
 
     return Object.seal(this);

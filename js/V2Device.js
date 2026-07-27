@@ -44,4 +44,8 @@ class V2Device extends V2Connection {
 
     this.log.detach();
   }
+
+  sendReset() {
+    this.sendSystemReset();
+  }
 }

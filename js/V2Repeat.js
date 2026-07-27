@@ -1,7 +1,5 @@
-// © Kay Sievers <kay@versioduo.com>, 2019-2022
-// SPDX-License-Identifier: Apache-2.0
-
 class V2Repeat extends V2WebModule {
+  #element = null;
   #startButton = null;
   #stopButton = null;
   #notify = null;
@@ -41,8 +39,13 @@ class V2Repeat extends V2WebModule {
   });
 
   constructor(device) {
-    super('repeat', 'Repeat', 'Send notes in a loop');
+    super('repeat', '--rotate', 'Repeat', 'Send Notes in a Loop');
     this.#device = device;
+
+    V2Web.addElement(this.canvas, 'div', (e) => {
+      this.#element = e;
+      e.id = this.id + '.element';
+    });
 
     this.#device.addNotifier('show', () => {
       this.#show();
@@ -51,15 +54,16 @@ class V2Repeat extends V2WebModule {
 
     this.#device.addNotifier('reset', () => {
       this.detach();
-      this.reset();
+      while (this.#element.firstChild)
+        this.#element.firstChild.remove();
     });
 
     return Object.seal(this);
   }
 
   #show() {
-    V2Web.addButtons(this.canvas, (buttons) => {
-      V2Web.addButton(buttons, (e) => {
+    new V2WebMenu(this.#element, (menu) => {
+      menu.addElement('button', (e) => {
         this.#stopButton = e;
         e.textContent = 'Stop';
         e.disabled = true;
@@ -68,9 +72,9 @@ class V2Repeat extends V2WebModule {
         });
       });
 
-      V2Web.addButton(buttons, (e) => {
+      menu.addElement('button', (e) => {
         this.#startButton = e;
-        e.classList.add('is-link');
+        e.classList.add('primary');
         e.textContent = 'Start';
         e.addEventListener('click', () => {
           this.#start();
@@ -78,60 +82,39 @@ class V2Repeat extends V2WebModule {
       });
     });
 
-    this.#notify = new V2WebNotify(this.canvas);
+    this.#notify = new V2WebNotify(this.#element);
 
-    new V2WebField(this.canvas, (field) => {
-      field.addButton((e) => {
-        e.classList.add('width-label');
-        e.classList.add('is-danger');
-        e.classList.add('is-light');
-        e.classList.add('inactive');
+    new V2WebMenu(this.#element, (menu) => {
+      menu.addElement('button', (e) => {
         e.textContent = 'Danger';
-        e.tabIndex = -1;
       });
 
-      field.addElement('label', (label) => {
-        label.classList.add('switch');
+      menu.addElement('input', (e) => {
+        e.type = 'checkbox';
+        e.classList.add('danger');
+        e.addEventListener('input', () => {
+          this.#danger = e.checked;
 
-        V2Web.addElement(label, 'input', (e) => {
-          e.type = 'checkbox';
-          e.addEventListener('input', () => {
-            this.#danger = e.checked;
-
-            if (this.#beat.element.value > 110)
-              this.#beat.update(110);
-          });
-        });
-
-        V2Web.addElement(label, 'span', (e) => {
-          e.classList.add('check');
+          if (this.#beat.element.value > 110)
+            this.#beat.update(110);
         });
       });
     });
 
-    new V2WebField(this.canvas, (field) => {
-      field.addButton((e) => {
-        e.classList.add('width-label');
-        e.classList.add('has-background-grey-lighter');
-        e.classList.add('inactive');
+    new V2WebMenu(this.#element, (menu) => {
+      menu.addElement('span', (e) => {
         e.textContent = 'Channel';
-        e.tabIndex = -1;
       });
 
-      field.addElement('span', (e) => {
-        e.classList.add('select');
-        e.classList.add('is-rounded');
+      menu.addElement('select', (select) => {
+        this.#channel = select;
 
-        V2Web.addElement(e, 'select', (select) => {
-          this.#channel = select;
-
-          for (let i = 1; i < 17; i++) {
-            V2Web.addElement(select, 'option', (e) => {
-              e.value = i;
-              e.text = i;
-            });
-          }
-        });
+        for (let i = 1; i < 17; i++) {
+          V2Web.addElement(select, 'option', (e) => {
+            e.value = i;
+            e.text = i;
+          });
+        }
       });
     });
 
@@ -148,37 +131,34 @@ class V2Repeat extends V2WebModule {
 
         text.textContent = V2MIDI.Note.getName(number);
         if (V2MIDI.Note.isBlack(number)) {
-          text.classList.add('is-dark');
-          text.classList.remove('has-background-light');
+          text.classList.add('dark');
+          text.classList.remove('light');
 
         } else {
-          text.classList.remove('is-dark');
-          text.classList.add('has-background-light');
+          text.classList.remove('dark');
+          text.classList.add('light');
         }
 
         if (this.#count.element.value > (128 - number))
           this.#count.update(128 - number);
       };
 
-      new V2WebField(this.canvas, (field) => {
-        field.addButton((e) => {
-          e.classList.add('width-label');
-          e.classList.add('has-background-grey-lighter');
-          e.classList.add('inactive');
-          e.tabIndex = -1;
+      new V2WebMenu(this.#element, (menu) => {
+        menu.element.classList.add('full');
+
+        menu.addElement('span', (e) => {
+          e.classList.add('label');
           e.textContent = 'Note';
         });
 
-        field.addButton((e) => {
+        menu.addElement('span', (e) => {
+          e.classList.add('grow');
           text = e;
-          e.classList.add('width-label');
-          e.classList.add('inactive');
-          e.tabIndex = -1;
         });
 
-        field.addInput('number', (e) => {
+        menu.addElement('input', (e) => {
           this.#note.element = e;
-          e.classList.add('width-number');
+          e.type = 'number';
           e.min = 0;
           e.max = 127;
           e.addEventListener('input', () => {
@@ -195,26 +175,27 @@ class V2Repeat extends V2WebModule {
           });
         });
 
-        field.addButton((e) => {
-          e.textContent = '-';
-          e.style.width = '3rem';
+        menu.addElement('button', (e) => {
+          V2Web.addElement(e, 'i', (i) => {
+            i.classList.add('icon', '--nospace', '--minus');
+          });
           e.addEventListener('click', () => {
             this.#note.update(Number(this.#note.element.value) - 1);
           });
         });
 
-        field.addButton((e) => {
-          e.textContent = '+';
-          e.style.width = '3rem';
+        menu.addElement('button', (e) => {
+          V2Web.addElement(e, 'i', (i) => {
+            i.classList.add('icon', '--nospace', '--plus');
+          });
           e.addEventListener('click', () => {
             this.#note.update(Number(this.#note.element.value) + 1);
           });
         });
       });
 
-      V2Web.addElement(this.canvas, 'input', (e) => {
+      V2Web.addElement(this.#element, 'input', (e) => {
         range = e;
-        e.classList.add('range');
         e.type = 'range';
         e.min = 0;
         e.max = 127;
@@ -239,17 +220,17 @@ class V2Repeat extends V2WebModule {
           this.#note.update(128 - number);
       };
 
-      new V2WebField(this.canvas, (field) => {
-        field.addButton((e) => {
-          e.classList.add('width-label');
-          e.classList.add('has-background-grey-lighter');
-          e.classList.add('inactive');
+      new V2WebMenu(this.#element, (menu) => {
+        menu.element.classList.add('full');
+
+        menu.addElement('span', (e) => {
           e.textContent = 'Count';
+          e.classList.add('grow');
         });
 
-        field.addInput('number', (e) => {
+        menu.addElement('input', (e) => {
           this.#count.element = e;
-          e.classList.add('width-number');
+          e.type = 'number';
           e.min = 1;
           e.max = 128;
           e.value = 1;
@@ -267,27 +248,28 @@ class V2Repeat extends V2WebModule {
           });
         });
 
-        field.addButton((e) => {
-          e.textContent = '-';
-          e.style.width = '3rem';
+        menu.addElement('button', (e) => {
+          V2Web.addElement(e, 'i', (i) => {
+            i.classList.add('icon', '--nospace', '--minus');
+          });
           e.addEventListener('click', () => {
             this.#count.update(Number(this.#count.element.value) - 1);
           });
         });
 
-        field.addButton((e) => {
-          e.textContent = '+';
-          e.style.width = '3rem';
+        menu.addElement('button', (e) => {
+          V2Web.addElement(e, 'i', (i) => {
+            i.classList.add('icon', '--nospace', '--plus');
+          });
           e.addEventListener('click', () => {
             this.#count.update(Number(this.#count.element.value) + 1);
           });
         });
       });
 
-      V2Web.addElement(this.canvas, 'input', (e) => {
+      V2Web.addElement(this.#element, 'input', (e) => {
         range = e;
         e.type = 'range';
-        e.classList.add('range');
         e.min = 1;
         e.max = 128;
         e.value = this.#count.element.value;
@@ -302,17 +284,17 @@ class V2Repeat extends V2WebModule {
     {
       let range = null;
 
-      new V2WebField(this.canvas, (field) => {
-        field.addButton((e) => {
-          e.classList.add('width-label');
-          e.classList.add('has-background-grey-lighter');
-          e.classList.add('inactive');
+      new V2WebMenu(this.#element, (menu) => {
+        menu.element.classList.add('full');
+
+        menu.addElement('span', (e) => {
           e.textContent = 'Velocity';
+          e.classList.add('grow');
         });
 
-        field.addInput('number', (e) => {
+        menu.addElement('input', (e) => {
           this.#velocity = e;
-          e.classList.add('width-number');
+          e.type = 'number';
           e.min = 1;
           e.max = 127;
           e.value = 10;
@@ -328,12 +310,31 @@ class V2Repeat extends V2WebModule {
               e.value = 127;
           });
         });
+
+        menu.addElement('button', (e) => {
+          V2Web.addElement(e, 'i', (i) => {
+            i.classList.add('icon', '--nospace', '--minus');
+          });
+          e.addEventListener('click', () => {
+            this.#velocity.stepDown();
+            this.#velocity.dispatchEvent(new Event('input'));
+          });
+        });
+
+        menu.addElement('button', (e) => {
+          V2Web.addElement(e, 'i', (i) => {
+            i.classList.add('icon', '--nospace', '--plus');
+          });
+          e.addEventListener('click', () => {
+            this.#velocity.stepUp();
+            this.#velocity.dispatchEvent(new Event('input'));
+          });
+        });
       });
 
-      V2Web.addElement(this.canvas, 'input', (e) => {
+      V2Web.addElement(this.#element, 'input', (e) => {
         range = e;
         e.type = 'range';
-        e.classList.add('range');
         e.min = 1;
         e.max = 127;
         e.value = 10;
@@ -359,25 +360,22 @@ class V2Repeat extends V2WebModule {
         text.textContent = this.#run.lengthMsec + ' ms';
       };
 
-      new V2WebField(this.canvas, (field) => {
-        field.addButton((e) => {
-          e.classList.add('width-label');
-          e.classList.add('has-background-grey-lighter');
-          e.classList.add('inactive');
+      new V2WebMenu(this.#element, (menu) => {
+        menu.element.classList.add('full');
+
+        menu.addElement('span', (e) => {
+          e.classList.add('label');
           e.textContent = 'Length';
         });
 
-        field.addButton((e) => {
+        menu.addElement('span', (e) => {
+          e.classList.add('grow');
           text = e;
-          e.classList.add('width-label');
-          e.classList.add('has-background-light');
-          e.classList.add('inactive');
-          e.tabIndex = -1;
         });
 
-        field.addInput('number', (e) => {
+        menu.addElement('input', (e) => {
           this.#length.element = e;
-          e.classList.add('width-number');
+          e.type = 'number';
           e.min = 1;
           e.max = 127;
           e.addEventListener('input', (event) => {
@@ -395,10 +393,9 @@ class V2Repeat extends V2WebModule {
         });
       });
 
-      V2Web.addElement(this.canvas, 'input', (e) => {
+      V2Web.addElement(this.#element, 'input', (e) => {
         range = e;
         e.type = 'range';
-        e.classList.add('range');
         e.min = 1;
         e.max = 127;
         e.value = this.#length.element.value;
@@ -420,10 +417,9 @@ class V2Repeat extends V2WebModule {
           number = 110;
 
         if (number > 110)
-          this.#beat.element.classList.add('is-danger');
-
+          this.#beat.element.classList.add('danger');
         else
-          this.#beat.element.classList.remove('is-danger');
+          this.#beat.element.classList.remove('danger');
 
         this.#beat.element.value = number;
         range.value = number;
@@ -436,25 +432,22 @@ class V2Repeat extends V2WebModule {
         text.textContent = this.#run.beatMsec + ' ms';
       };
 
-      new V2WebField(this.canvas, (field) => {
-        field.addButton((e) => {
-          e.classList.add('width-label');
-          e.classList.add('has-background-grey-lighter');
-          e.classList.add('inactive');
+      new V2WebMenu(this.#element, (menu) => {
+        menu.element.classList.add('full');
+
+        menu.addElement('span', (e) => {
+          e.classList.add('label');
           e.textContent = 'Beat';
         });
 
-        field.addButton((e) => {
+        menu.addElement('span', (e) => {
+          e.classList.add('grow');
           text = e;
-          e.classList.add('width-label');
-          e.classList.add('has-background-light');
-          e.classList.add('inactive');
-          e.tabIndex = -1;
         });
 
-        field.addInput('number', (e) => {
+        menu.addElement('input', (e) => {
           this.#beat.element = e;
-          e.classList.add('width-number');
+          e.type = 'number';
           e.min = 0;
           e.max = 127;
           e.addEventListener('input', (event) => {
@@ -472,10 +465,9 @@ class V2Repeat extends V2WebModule {
         });
       });
 
-      V2Web.addElement(this.canvas, 'input', (e) => {
+      V2Web.addElement(this.#element, 'input', (e) => {
         range = e;
         e.type = 'range';
-        e.classList.add('range');
         e.min = 0;
         e.max = 127;
         e.value = this.#beat.element.value;
@@ -504,25 +496,22 @@ class V2Repeat extends V2WebModule {
         text.textContent = this.#run.pauseMsec + ' ms';
       };
 
-      new V2WebField(this.canvas, (field) => {
-        field.addButton((e) => {
-          e.classList.add('width-label');
-          e.classList.add('has-background-grey-lighter');
-          e.classList.add('inactive');
+      new V2WebMenu(this.#element, (menu) => {
+        menu.element.classList.add('full');
+
+        menu.addElement('span', (e) => {
+          e.classList.add('label');
           e.textContent = 'Pause';
         });
 
-        field.addButton((e) => {
+        menu.addElement('span', (e) => {
+          e.classList.add('grow');
           text = e;
-          e.classList.add('width-label');
-          e.classList.add('has-background-light');
-          e.classList.add('inactive');
-          e.tabIndex = -1;
         });
 
-        field.addInput('number', (e) => {
+        menu.addElement('input', (e) => {
           this.#pause.element = e;
-          e.classList.add('width-number');
+          e.type = 'number';
           e.min = 0;
           e.max = 127;
           e.addEventListener('input', (event) => {
@@ -541,10 +530,9 @@ class V2Repeat extends V2WebModule {
         });
       });
 
-      V2Web.addElement(this.canvas, 'input', (e) => {
+      V2Web.addElement(this.#element, 'input', (e) => {
         range = e;
         e.type = 'range';
-        e.classList.add('range');
         e.min = 0;
         e.max = 127;
         e.value = this.#pause.element.value;

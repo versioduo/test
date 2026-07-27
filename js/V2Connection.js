@@ -1,7 +1,7 @@
 class V2Connection extends V2WebModule {
   log = null;
   midi = null;
-  bannerNotify = null;
+  notify = null;
   select = null;
   device = null;
   version = null;
@@ -11,34 +11,59 @@ class V2Connection extends V2WebModule {
   });
 
   constructor(log, connect) {
-    super();
+    super('connection');
     this.log = log;
     this.midi = new V2MIDI();
-    this.bannerNotify = new V2WebNotify(this.canvas);
+    this.notify = new V2WebNotify(this.canvas);
 
-    this.select = new V2MIDISelect(this.canvas, (e) => {
-      e.classList.add('is-link');
-    });
+    new V2WebMenu(this.canvas, (menu) => {
+      menu.addElement('span', (e) => {
+        e.textContent = 'Device';
+      });
 
-    this.select.addNotifier('select', (device) => {
-      if (device) {
-        this.log.attach();
-        this.connect(device);
+      let reset = null;
+      menu.addItem((li) => {
+        this.select = new V2MIDISelect(li);
+        this.select.element.classList.add('primary');
 
-      } else {
-        this.log.detach();
-        this.disconnect();
-      }
-    });
+        this.select.addNotifier('select', (device) => {
+          if (device) {
+            this.log.attach();
+            this.connect(device);
+            reset.disabled = false;
 
-    // Focus the device selector when new devices arrive and we are
-    // not currently connected.
-    this.select.addNotifier('add', () => {
-      if (this.device.input)
-        return;
+          } else {
+            this.log.detach();
+            this.disconnect();
+            reset.disabled = true;
+          }
+        });
 
-      this.select.focus();
-      window.scroll(0, 0);
+        this.select.addNotifier('disconnect', () => {
+          reset.disabled = true;
+        });
+
+        this.select.addNotifier('add', () => {
+          if (this.device.input)
+            return;
+
+          window.scroll(0, 0);
+        });
+      });
+
+      menu.addElement('button', (e) => {
+        reset = e;
+        e.disabled = true;
+        e.classList.add('icon', 'field');
+
+        V2Web.addElement(e, 'i', (i) => {
+          i.classList.add('icon', '--rotate', '--nospace');
+        });
+
+        e.addEventListener('click', () => {
+          this.sendReset('token');
+        });
+      });
     });
 
     this.device = new V2MIDIDevice();
@@ -77,7 +102,7 @@ class V2Connection extends V2WebModule {
     this.midi.setup((error) => {
       if (error) {
         this.log.print(error);
-        this.bannerNotify.error(error);
+        this.notify.error(error);
         return;
       }
 
@@ -110,7 +135,6 @@ class V2Connection extends V2WebModule {
           this.log.print('Trying to connect to <b>' + name + '</b> ...');
           this.select.update(this.midi.getDevices('both'));
           this.select.select(device);
-          this.connect(device);
           return true;
         };
 
@@ -129,11 +153,9 @@ class V2Connection extends V2WebModule {
       }
     });
 
-    V2Web.addElement(this.canvas, 'div', (e) => {
+    V2Web.addElement(this.canvas, 'p', (e) => {
       this.version = e;
-      e.classList.add('mt-4');
-      e.classList.add('is-flex');
-      e.classList.add('is-justify-content-end');
+      e.classList.add('center');
       e.innerHTML = '<a href=' + document.querySelector('link[rel="source"]').href +
         ' target="software">' + document.querySelector('meta[name="name"]').content +
         '</a>, version ' + Number(document.querySelector('meta[name="version"]').content);

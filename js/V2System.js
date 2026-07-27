@@ -1,13 +1,16 @@
-// © Kay Sievers <kay@versioduo.com>, 2019-2022
-// SPDX-License-Identifier: Apache-2.0
-
 class V2System extends V2WebModule {
   #device = null;
+  #element = null;
   #json = null;
 
   constructor(device) {
-    super('sysex', 'System', 'Send System messages');
+    super('sysex', '--screwdriver-wrench', 'System', 'Send System Messages');
     this.#device = device;
+
+    V2Web.addElement(this.canvas, 'div', (e) => {
+      this.#element = e;
+      e.id = this.id + '.element';
+    });
 
     this.#device.addNotifier('show', () => {
       this.#show();
@@ -16,15 +19,16 @@ class V2System extends V2WebModule {
 
     this.#device.addNotifier('reset', () => {
       this.detach();
-      this.reset();
+      while (this.#element.firstChild)
+        this.#element.firstChild.remove();
     });
 
     return Object.seal(this);
   }
 
   #show() {
-    V2Web.addButtons(this.canvas, (buttons) => {
-      V2Web.addButton(buttons, (e) => {
+    new V2WebMenu(this.#element, (menu) => {
+      menu.addElement('button', (e) => {
         e.textContent = 'Reset';
         e.addEventListener('click', () => {
           this.#device.sendSystemReset();
@@ -32,18 +36,21 @@ class V2System extends V2WebModule {
       });
     });
 
-    new V2WebField(this.canvas, (field) => {
-      field.addButton((e) => {
-        e.classList.add('width-label');
+    new V2WebMenu(this.#element, (menu) => {
+      menu.element.classList.add('full');
+
+      menu.addElement('button', (e) => {
+        e.classList.add('primary');
         e.textContent = 'JSON';
         e.addEventListener('click', () => {
           this.#device.sendJSON(this.#json.value);
         });
       });
 
-      field.addInput('text', (e, p) => {
+      menu.addElement('input', (e) => {
         this.#json = e;
-        p.classList.add('is-expanded');
+        e.classList.add('grow');
+        e.type = 'text';
         e.value = '{}';
       });
     });

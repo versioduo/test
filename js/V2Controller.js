@@ -1,15 +1,18 @@
-// © Kay Sievers <kay@versioduo.com>, 2019-2022
-// SPDX-License-Identifier: Apache-2.0
-
 class V2Controller extends V2WebModule {
   #device = null;
+  #element = null;
   #channel = null;
   #controller = null;
   #value = null;
 
   constructor(device) {
-    super('controller', 'Controller', 'Send Control Changes');
+    super('controller', '--sliders', 'Controller', 'Send Control Changes');
     this.#device = device;
+
+    V2Web.addElement(this.canvas, 'div', (e) => {
+      this.#element = e;
+      e.id = this.id + '.element';
+    });
 
     this.#device.addNotifier('show', () => {
       this.#show();
@@ -18,30 +21,31 @@ class V2Controller extends V2WebModule {
 
     this.#device.addNotifier('reset', () => {
       this.detach();
-      this.reset();
+      while (this.#element.firstChild)
+        this.#element.firstChild.remove();
     });
 
     return Object.seal(this);
   }
 
   #show() {
-    V2Web.addButtons(this.canvas, (buttons) => {
-      V2Web.addButton(buttons, (e) => {
+    new V2WebMenu(this.#element, (menu) => {
+      menu.addElement('button', (e) => {
         e.textContent = 'Notes Off';
         e.addEventListener('click', () => {
           this.#device.sendControlChange(this.#channel.value - 1, V2MIDI.CC.allNotesOff, 0);
         });
       });
 
-      V2Web.addButton(buttons, (e) => {
+      menu.addElement('button', (e) => {
         e.textContent = 'Controllers Off';
         e.addEventListener('click', () => {
           this.#device.sendControlChange(this.#channel.value - 1, V2MIDI.CC.resetAllControllers, 0);
         });
       });
 
-      V2Web.addButton(buttons, (e) => {
-        e.classList.add('is-link');
+      menu.addElement('button', (e) => {
+        e.classList.add('primary');
         e.textContent = 'Send';
         e.addEventListener('click', () => {
           this.#device.sendControlChange(this.#channel.value - 1, this.#controller.value, this.#value.value);
@@ -49,29 +53,20 @@ class V2Controller extends V2WebModule {
       });
     });
 
-    new V2WebField(this.canvas, (field) => {
-      field.addButton((e) => {
-        e.classList.add('width-label');
-        e.classList.add('has-background-grey-lighter');
-        e.classList.add('inactive');
+    new V2WebMenu(this.#element, (menu) => {
+      menu.addElement('span', (e) => {
         e.textContent = 'Channel';
-        e.tabIndex = -1;
       });
 
-      field.addElement('span', (e) => {
-        e.classList.add('select');
-        e.classList.add('is-rounded');
+      menu.addElement('select', (select) => {
+        this.#channel = select;
 
-        V2Web.addElement(e, 'select', (select) => {
-          this.#channel = select;
-
-          for (let i = 1; i < 17; i++) {
-            V2Web.addElement(select, 'option', (e) => {
-              e.value = i;
-              e.text = i;
-            });
-          }
-        });
+        for (let i = 1; i < 17; i++) {
+          V2Web.addElement(select, 'option', (e) => {
+            e.value = i;
+            e.text = i;
+          });
+        }
       });
     });
 
@@ -85,26 +80,21 @@ class V2Controller extends V2WebModule {
         range.value = number;
       };
 
-      new V2WebField(this.canvas, (field) => {
-        field.addButton((e) => {
-          e.classList.add('width-label');
-          e.classList.add('has-background-grey-lighter');
-          e.classList.add('inactive');
-          e.tabIndex = -1;
+      new V2WebMenu(this.#element, (menu) => {
+        menu.element.classList.add('full');
+
+        menu.addElement('span', (e) => {
           e.textContent = 'Controller';
         });
 
-        field.addButton((e) => {
+        menu.addElement('span', (e) => {
+          e.classList.add('grow');
           text = e;
-          e.classList.add('width-text-wide');
-          e.classList.add('has-background-light');
-          e.classList.add('inactive');
-          e.tabIndex = -1;
         });
 
-        field.addInput('number', (e) => {
+        menu.addElement('input', (e) => {
           this.#controller = e;
-          e.classList.add('width-number');
+          e.type = 'number';
           e.value = V2MIDI.CC.channelVolume;
           e.min = 0;
           e.max = 127;
@@ -114,9 +104,8 @@ class V2Controller extends V2WebModule {
         });
       });
 
-      V2Web.addElement(this.canvas, 'input', (e) => {
+      V2Web.addElement(this.#element, 'input', (e) => {
         range = e;
-        e.classList.add('range');
         e.type = 'range';
         e.min = 0;
         e.max = 127;
@@ -131,18 +120,17 @@ class V2Controller extends V2WebModule {
     {
       let range = null;
 
-      new V2WebField(this.canvas, (field) => {
-        field.addButton((e) => {
-          e.classList.add('width-label');
-          e.classList.add('has-background-grey-lighter');
-          e.classList.add('inactive');
-          e.tabIndex = -1;
+      new V2WebMenu(this.#element, (menu) => {
+        menu.element.classList.add('full');
+
+        menu.addElement('span', (e) => {
           e.textContent = 'Value';
+          e.classList.add('grow');
         });
 
-        field.addInput('number', (e) => {
+        menu.addElement('input', (e) => {
           this.#value = e;
-          e.classList.add('width-number');
+          e.type = 'number';
           e.min = 0;
           e.max = 127;
           e.value = 0;
@@ -150,11 +138,30 @@ class V2Controller extends V2WebModule {
             range.value = e.value;
           });
         });
+
+        menu.addElement('button', (e) => {
+          V2Web.addElement(e, 'i', (i) => {
+            i.classList.add('icon', '--nospace', '--minus');
+          });
+          e.addEventListener('click', () => {
+            this.#value.stepDown();
+            this.#value.dispatchEvent(new Event('input'));
+          });
+        });
+
+        menu.addElement('button', (e) => {
+          V2Web.addElement(e, 'i', (i) => {
+            i.classList.add('icon', '--nospace', '--plus');
+          });
+          e.addEventListener('click', () => {
+            this.#value.stepUp();
+            this.#value.dispatchEvent(new Event('input'));
+          });
+        });
       });
 
-      V2Web.addElement(this.canvas, 'input', (e) => {
+      V2Web.addElement(this.#element, 'input', (e) => {
         range = e;
-        e.classList.add('range');
         e.type = 'range';
         e.min = 0;
         e.max = 127;

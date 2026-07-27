@@ -1,13 +1,10 @@
 const name = 'test';
-const version = 108;
+const version = 130;
 const files = [
   './',
-  'css/bulma-addons.css',
-  'css/bulma.min.css',
   'css/fonts.css',
+  'css/style.css',
   'icons/logo-black.svg',
-  'icons/logo-boxed.png',
-  'icons/logo-boxed.svg',
   'icons/logo-maskable.svg',
   'icons/logo.svg',
   'js/V2Connection.js',
@@ -22,7 +19,7 @@ const files = [
   'js/V2Repeat.js',
   'js/V2System.js',
   'js/V2Web.js',
-  'site.webmanifest',
+  'manifest.json',
   'webfonts/AlteDIN1451Mittelschrift.woff2',
   'webfonts/fa-brands-400.woff2',
   'webfonts/fa-solid-900.woff2'

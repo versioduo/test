@@ -1,8 +1,6 @@
-// © Kay Sievers <kay@versioduo.com>, 2019-2022
-// SPDX-License-Identifier: Apache-2.0
-
 class V2Input extends V2WebModule {
   #device = null;
+  #element = null;
   #wakeLock = null;
   #lock = null;
   #select = null;
@@ -11,8 +9,13 @@ class V2Input extends V2WebModule {
   #transpose = null;
 
   constructor(device) {
-    super('input', 'Input', 'Listen to events from device');
+    super('input', '--right-to-bracket', 'Input', 'Listen to Events from another Device');
     this.#device = device;
+
+    V2Web.addElement(this.canvas, 'div', (e) => {
+      this.#element = e;
+      e.id = this.id + '.element';
+    });
 
     this.#device.getMIDI().addNotifier('state', (event) => {
       if (this.#select)
@@ -26,7 +29,8 @@ class V2Input extends V2WebModule {
 
     this.#device.addNotifier('reset', () => {
       this.detach();
-      this.reset();
+      while (this.#element.firstChild)
+        this.#element.firstChild.remove();
     });
 
     return Object.seal(this);
@@ -64,8 +68,8 @@ class V2Input extends V2WebModule {
   }
 
   #show() {
-    V2Web.addButtons(this.canvas, (buttons) => {
-      V2Web.addButton(buttons, (e) => {
+    new V2WebMenu(this.#element, (menu) => {
+      menu.addElement('button', (e) => {
         this.#lock = e;
         e.disabled = true;
         e.textContent = 'Lock';
@@ -91,8 +95,14 @@ class V2Input extends V2WebModule {
       });
     });
 
-    this.#select = new V2MIDISelect(this.canvas, (e) => {
-      e.classList.add('mb-3');
+    new V2WebMenu(this.#element, (menu) => {
+      menu.addElement('span', (e) => {
+        e.textContent = 'Device';
+      });
+
+      menu.addItem((li) => {
+        this.#select = new V2MIDISelect(li);
+      });
     });
 
     this.#select.addNotifier('select', (device) => {
@@ -110,63 +120,45 @@ class V2Input extends V2WebModule {
 
     this.#updateSelect();
 
-    new V2WebField(this.canvas, (field) => {
-      field.addButton((e) => {
-        e.classList.add('width-label');
-        e.classList.add('has-background-grey-lighter');
-        e.classList.add('inactive');
+    new V2WebMenu(this.#element, (menu) => {
+      menu.addElement('span', (e) => {
         e.textContent = 'Transpose';
-        e.tabIndex = -1;
       });
 
-      field.addElement('span', (e) => {
-        e.classList.add('select');
-        e.classList.add('is-rounded');
+      menu.addElement('select', (select) => {
+        this.#transpose = select;
 
-        V2Web.addElement(e, 'select', (select) => {
-          this.#transpose = select;
+        for (const i of [48, 36, 24, 12, 0, -12, -24, -36, -48]) {
+          V2Web.addElement(select, 'option', (e) => {
+            e.value = i;
+            e.text = (i > 0) ? '+' + i : i;
 
-          for (const i of [48, 36, 24, 12, 0, -12, -24, -36, -48]) {
-            V2Web.addElement(select, 'option', (e) => {
-              e.value = i;
-              e.text = (i > 0) ? '+' + i : i;
-
-              if (i === 0)
-                e.selected = true;
-            });
-          }
-        });
+            if (i === 0)
+              e.selected = true;
+          });
+        }
       });
     });
 
-    new V2WebField(this.canvas, (field) => {
-      field.addButton((e) => {
-        e.classList.add('width-label');
-        e.classList.add('has-background-grey-lighter');
-        e.classList.add('inactive');
+    new V2WebMenu(this.#element, (menu) => {
+      menu.addElement('span', (e) => {
         e.textContent = 'Channel';
-        e.tabIndex = -1;
       });
 
-      field.addElement('span', (e) => {
-        e.classList.add('select');
-        e.classList.add('is-rounded');
-
-        V2Web.addElement(e, 'select', (select) => {
-          this.#channel = select;
-
-          V2Web.addElement(select, 'option', (e) => {
-            e.value = null;
-            e.text = '–';
-          });
-
-          for (let i = 1; i < 17; i++) {
-            V2Web.addElement(select, 'option', (e) => {
-              e.value = i;
-              e.text = i;
-            });
-          }
+      menu.addElement('select', (select) => {
+        this.#channel = select;
+        
+        V2Web.addElement(select, 'option', (e) => {
+          e.value = null;
+          e.text = '–';
         });
+
+        for (let i = 1; i < 17; i++) {
+          V2Web.addElement(select, 'option', (e) => {
+            e.value = i;
+            e.text = i;
+          });
+        }
       });
     });
 
