@@ -1,4 +1,4 @@
-class V2Input extends V2WebModule {
+class V2Input extends V2AppSection {
   #device = null;
   #element = null;
   #wakeLock = null;
@@ -12,7 +12,7 @@ class V2Input extends V2WebModule {
     super('input', '--right-to-bracket', 'Input', 'Listen to Events from another Device');
     this.#device = device;
 
-    V2Web.addElement(this.canvas, 'div', (e) => {
+    V2App.addElement(this.canvas, 'div', (e) => {
       this.#element = e;
       e.id = this.id + '.element';
     });
@@ -68,7 +68,7 @@ class V2Input extends V2WebModule {
   }
 
   #show() {
-    new V2WebMenu(this.#element, (menu) => {
+    new V2AppMenu(this.#element, (menu) => {
       menu.addElement('button', (e) => {
         this.#lock = e;
         e.disabled = true;
@@ -95,7 +95,7 @@ class V2Input extends V2WebModule {
       });
     });
 
-    new V2WebMenu(this.#element, (menu) => {
+    new V2AppMenu(this.#element, (menu) => {
       menu.addElement('span', (e) => {
         e.textContent = 'Device';
       });
@@ -120,7 +120,7 @@ class V2Input extends V2WebModule {
 
     this.#updateSelect();
 
-    new V2WebMenu(this.#element, (menu) => {
+    new V2AppMenu(this.#element, (menu) => {
       menu.addElement('span', (e) => {
         e.textContent = 'Transpose';
       });
@@ -129,7 +129,7 @@ class V2Input extends V2WebModule {
         this.#transpose = select;
 
         for (const i of [48, 36, 24, 12, 0, -12, -24, -36, -48]) {
-          V2Web.addElement(select, 'option', (e) => {
+          V2App.addElement(select, 'option', (e) => {
             e.value = i;
             e.text = (i > 0) ? '+' + i : i;
 
@@ -140,7 +140,7 @@ class V2Input extends V2WebModule {
       });
     });
 
-    new V2WebMenu(this.#element, (menu) => {
+    new V2AppMenu(this.#element, (menu) => {
       menu.addElement('span', (e) => {
         e.textContent = 'Channel';
       });
@@ -148,13 +148,13 @@ class V2Input extends V2WebModule {
       menu.addElement('select', (select) => {
         this.#channel = select;
         
-        V2Web.addElement(select, 'option', (e) => {
+        V2App.addElement(select, 'option', (e) => {
           e.value = null;
           e.text = '–';
         });
 
         for (let i = 1; i < 17; i++) {
-          V2Web.addElement(select, 'option', (e) => {
+          V2App.addElement(select, 'option', (e) => {
             e.value = i;
             e.text = i;
           });

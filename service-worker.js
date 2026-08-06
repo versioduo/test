@@ -1,5 +1,5 @@
 const name = 'test';
-const version = 130;
+const version = 131;
 const files = [
   './',
   'css/fonts.css',
@@ -7,6 +7,7 @@ const files = [
   'icons/logo-black.svg',
   'icons/logo-maskable.svg',
   'icons/logo.svg',
+  'js/V2App.js',
   'js/V2Connection.js',
   'js/V2Controller.js',
   'js/V2Device.js',
@@ -18,7 +19,6 @@ const files = [
   'js/V2Program.js',
   'js/V2Repeat.js',
   'js/V2System.js',
-  'js/V2Web.js',
   'manifest.json',
   'webfonts/AlteDIN1451Mittelschrift.woff2',
   'webfonts/fa-brands-400.woff2',

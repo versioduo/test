@@ -1,4 +1,4 @@
-class V2Controller extends V2WebModule {
+class V2Controller extends V2AppSection {
   #device = null;
   #element = null;
   #channel = null;
@@ -9,7 +9,7 @@ class V2Controller extends V2WebModule {
     super('controller', '--sliders', 'Controller', 'Send Control Changes');
     this.#device = device;
 
-    V2Web.addElement(this.canvas, 'div', (e) => {
+    V2App.addElement(this.canvas, 'div', (e) => {
       this.#element = e;
       e.id = this.id + '.element';
     });
@@ -29,7 +29,7 @@ class V2Controller extends V2WebModule {
   }
 
   #show() {
-    new V2WebMenu(this.#element, (menu) => {
+    new V2AppMenu(this.#element, (menu) => {
       menu.addElement('button', (e) => {
         e.textContent = 'Notes Off';
         e.addEventListener('click', () => {
@@ -53,7 +53,7 @@ class V2Controller extends V2WebModule {
       });
     });
 
-    new V2WebMenu(this.#element, (menu) => {
+    new V2AppMenu(this.#element, (menu) => {
       menu.addElement('span', (e) => {
         e.textContent = 'Channel';
       });
@@ -62,7 +62,7 @@ class V2Controller extends V2WebModule {
         this.#channel = select;
 
         for (let i = 1; i < 17; i++) {
-          V2Web.addElement(select, 'option', (e) => {
+          V2App.addElement(select, 'option', (e) => {
             e.value = i;
             e.text = i;
           });
@@ -80,7 +80,7 @@ class V2Controller extends V2WebModule {
         range.value = number;
       };
 
-      new V2WebMenu(this.#element, (menu) => {
+      new V2AppMenu(this.#element, (menu) => {
         menu.element.classList.add('full');
 
         menu.addElement('span', (e) => {
@@ -104,7 +104,7 @@ class V2Controller extends V2WebModule {
         });
       });
 
-      V2Web.addElement(this.#element, 'input', (e) => {
+      V2App.addElement(this.#element, 'input', (e) => {
         range = e;
         e.type = 'range';
         e.min = 0;
@@ -120,7 +120,7 @@ class V2Controller extends V2WebModule {
     {
       let range = null;
 
-      new V2WebMenu(this.#element, (menu) => {
+      new V2AppMenu(this.#element, (menu) => {
         menu.element.classList.add('full');
 
         menu.addElement('span', (e) => {
@@ -140,7 +140,7 @@ class V2Controller extends V2WebModule {
         });
 
         menu.addElement('button', (e) => {
-          V2Web.addElement(e, 'i', (i) => {
+          V2App.addElement(e, 'i', (i) => {
             i.classList.add('icon', '--nospace', '--minus');
           });
           e.addEventListener('click', () => {
@@ -150,7 +150,7 @@ class V2Controller extends V2WebModule {
         });
 
         menu.addElement('button', (e) => {
-          V2Web.addElement(e, 'i', (i) => {
+          V2App.addElement(e, 'i', (i) => {
             i.classList.add('icon', '--nospace', '--plus');
           });
           e.addEventListener('click', () => {
@@ -160,7 +160,7 @@ class V2Controller extends V2WebModule {
         });
       });
 
-      V2Web.addElement(this.#element, 'input', (e) => {
+      V2App.addElement(this.#element, 'input', (e) => {
         range = e;
         e.type = 'range';
         e.min = 0;

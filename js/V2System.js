@@ -1,4 +1,4 @@
-class V2System extends V2WebModule {
+class V2System extends V2AppSection {
   #device = null;
   #element = null;
   #json = null;
@@ -7,7 +7,7 @@ class V2System extends V2WebModule {
     super('sysex', '--screwdriver-wrench', 'System', 'Send System Messages');
     this.#device = device;
 
-    V2Web.addElement(this.canvas, 'div', (e) => {
+    V2App.addElement(this.canvas, 'div', (e) => {
       this.#element = e;
       e.id = this.id + '.element';
     });
@@ -27,7 +27,7 @@ class V2System extends V2WebModule {
   }
 
   #show() {
-    new V2WebMenu(this.#element, (menu) => {
+    new V2AppMenu(this.#element, (menu) => {
       menu.addElement('button', (e) => {
         e.textContent = 'Reset';
         e.addEventListener('click', () => {
@@ -36,7 +36,7 @@ class V2System extends V2WebModule {
       });
     });
 
-    new V2WebMenu(this.#element, (menu) => {
+    new V2AppMenu(this.#element, (menu) => {
       menu.element.classList.add('full');
 
       menu.addElement('button', (e) => {
