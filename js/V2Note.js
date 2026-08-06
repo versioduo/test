@@ -1,6 +1,5 @@
 class V2Note extends V2AppSection {
   #device = null;
-  #element = null;
   #channel = null;
   #note = null;
   #velocity = null;
@@ -10,27 +9,21 @@ class V2Note extends V2AppSection {
     super('note', '--music', 'Note', 'Send Notes');
     this.#device = device;
 
-    V2App.addElement(this.canvas, 'div', (e) => {
-      this.#element = e;
-      e.id = this.id + '.element';
-    });
-
     this.#device.addNotifier('show', () => {
+      this.removeSection();
+      this.addSection();
       this.#show();
-      this.attach();
     });
 
     this.#device.addNotifier('reset', () => {
-      this.detach();
-      while (this.#element.firstChild)
-        this.#element.firstChild.remove();
+      this.removeSection();
     });
 
     return Object.seal(this);
   }
 
   #show() {
-    new V2AppMenu(this.#element, (menu) => {
+    new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('button', (e) => {
         e.classList.add('primary');
         e.textContent = 'Send';
@@ -55,7 +48,7 @@ class V2Note extends V2AppSection {
       });
     });
 
-    new V2AppMenu(this.#element, (menu) => {
+    new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('span', (e) => {
         e.textContent = 'Channel';
       });
@@ -87,7 +80,7 @@ class V2Note extends V2AppSection {
         }
       };
 
-      new V2AppMenu(this.#element, (menu) => {
+      new V2AppMenu(this.canvas, (menu) => {
         menu.element.classList.add('full');
 
         menu.addElement('span', (e) => {
@@ -133,7 +126,7 @@ class V2Note extends V2AppSection {
         });
       });
 
-      V2App.addElement(this.#element, 'input', (e) => {
+      V2App.addElement(this.canvas, 'input', (e) => {
         range = e;
         e.type = 'range';
         e.min = 0;
@@ -151,7 +144,7 @@ class V2Note extends V2AppSection {
     {
       let range = null;
 
-      new V2AppMenu(this.#element, (menu) => {
+      new V2AppMenu(this.canvas, (menu) => {
         menu.element.classList.add('full');
 
         menu.addElement('span', (e) => {
@@ -191,7 +184,7 @@ class V2Note extends V2AppSection {
         });
       });
 
-      V2App.addElement(this.#element, 'input', (e) => {
+      V2App.addElement(this.canvas, 'input', (e) => {
         range = e;
         e.type = 'range';
         e.min = 1;
@@ -206,7 +199,7 @@ class V2Note extends V2AppSection {
     {
       let range = null;
 
-      new V2AppMenu(this.#element, (menu) => {
+      new V2AppMenu(this.canvas, (menu) => {
         menu.element.classList.add('full');
 
         menu.addElement('span', (e) => {
@@ -246,7 +239,7 @@ class V2Note extends V2AppSection {
         });
       });
 
-      V2App.addElement(this.#element, 'input', (e) => {
+      V2App.addElement(this.canvas, 'input', (e) => {
         range = e;
         e.type = 'range';
         e.min = 0;

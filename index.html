@@ -60,11 +60,11 @@
         new V2Log((log) => {
           const device = new V2Device(log, connect);
           app.addSection(new V2Input(device));
-          app.addSection(new Program(device));
-          app.addSection(new Controller(device));
-          app.addSection(new Note(device));
-          app.addSection(new System(device));
-          app.addSection(new Repeat(device));
+          app.addSection(new V2Program(device));
+          app.addSection(new V2Controller(device));
+          app.addSection(new V2Note(device));
+          app.addSection(new V2System(device));
+          app.addSection(new V2Repeat(device));
           app.addSection(log.setup(device));
         });
 

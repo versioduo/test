@@ -1,6 +1,5 @@
 class V2Input extends V2AppSection {
   #device = null;
-  #element = null;
   #wakeLock = null;
   #lock = null;
   #select = null;
@@ -12,25 +11,14 @@ class V2Input extends V2AppSection {
     super('input', '--right-to-bracket', 'Input', 'Listen to Events from another Device');
     this.#device = device;
 
-    V2App.addElement(this.canvas, 'div', (e) => {
-      this.#element = e;
-      e.id = this.id + '.element';
-    });
-
-    this.#device.getMIDI().addNotifier('state', (event) => {
-      if (this.#select)
-        this.#updateSelect();
-    });
-
     this.#device.addNotifier('show', () => {
+      this.removeSection();
+      this.addSection();
       this.#show();
-      this.attach();
     });
 
     this.#device.addNotifier('reset', () => {
-      this.detach();
-      while (this.#element.firstChild)
-        this.#element.firstChild.remove();
+      this.removeSection();
     });
 
     return Object.seal(this);
@@ -68,7 +56,7 @@ class V2Input extends V2AppSection {
   }
 
   #show() {
-    new V2AppMenu(this.#element, (menu) => {
+    new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('button', (e) => {
         this.#lock = e;
         e.disabled = true;
@@ -95,7 +83,7 @@ class V2Input extends V2AppSection {
       });
     });
 
-    new V2AppMenu(this.#element, (menu) => {
+    new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('span', (e) => {
         e.textContent = 'Device';
       });
@@ -120,7 +108,7 @@ class V2Input extends V2AppSection {
 
     this.#updateSelect();
 
-    new V2AppMenu(this.#element, (menu) => {
+    new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('span', (e) => {
         e.textContent = 'Transpose';
       });
@@ -140,14 +128,14 @@ class V2Input extends V2AppSection {
       });
     });
 
-    new V2AppMenu(this.#element, (menu) => {
+    new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('span', (e) => {
         e.textContent = 'Channel';
       });
 
       menu.addElement('select', (select) => {
         this.#channel = select;
-        
+
         V2App.addElement(select, 'option', (e) => {
           e.value = null;
           e.text = '–';

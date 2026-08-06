@@ -1,5 +1,4 @@
 class V2Repeat extends V2AppSection {
-  #element = null;
   #startButton = null;
   #stopButton = null;
   #notify = null;
@@ -42,27 +41,21 @@ class V2Repeat extends V2AppSection {
     super('repeat', '--rotate', 'Repeat', 'Send Notes in a Loop');
     this.#device = device;
 
-    V2App.addElement(this.canvas, 'div', (e) => {
-      this.#element = e;
-      e.id = this.id + '.element';
-    });
-
     this.#device.addNotifier('show', () => {
+      this.removeSection();
+      this.addSection();
       this.#show();
-      this.attach();
     });
 
     this.#device.addNotifier('reset', () => {
-      this.detach();
-      while (this.#element.firstChild)
-        this.#element.firstChild.remove();
+      this.removeSection();
     });
 
     return Object.seal(this);
   }
 
   #show() {
-    new V2AppMenu(this.#element, (menu) => {
+    new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('button', (e) => {
         this.#stopButton = e;
         e.textContent = 'Stop';
@@ -82,9 +75,9 @@ class V2Repeat extends V2AppSection {
       });
     });
 
-    this.#notify = new V2AppNotify(this.#element);
+    this.#notify = new V2AppNotify(this.canvas);
 
-    new V2AppMenu(this.#element, (menu) => {
+    new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('button', (e) => {
         e.textContent = 'Danger';
       });
@@ -101,7 +94,7 @@ class V2Repeat extends V2AppSection {
       });
     });
 
-    new V2AppMenu(this.#element, (menu) => {
+    new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('span', (e) => {
         e.textContent = 'Channel';
       });
@@ -143,7 +136,7 @@ class V2Repeat extends V2AppSection {
           this.#count.update(128 - number);
       };
 
-      new V2AppMenu(this.#element, (menu) => {
+      new V2AppMenu(this.canvas, (menu) => {
         menu.element.classList.add('full');
 
         menu.addElement('span', (e) => {
@@ -194,7 +187,7 @@ class V2Repeat extends V2AppSection {
         });
       });
 
-      V2App.addElement(this.#element, 'input', (e) => {
+      V2App.addElement(this.canvas, 'input', (e) => {
         range = e;
         e.type = 'range';
         e.min = 0;
@@ -220,7 +213,7 @@ class V2Repeat extends V2AppSection {
           this.#note.update(128 - number);
       };
 
-      new V2AppMenu(this.#element, (menu) => {
+      new V2AppMenu(this.canvas, (menu) => {
         menu.element.classList.add('full');
 
         menu.addElement('span', (e) => {
@@ -267,7 +260,7 @@ class V2Repeat extends V2AppSection {
         });
       });
 
-      V2App.addElement(this.#element, 'input', (e) => {
+      V2App.addElement(this.canvas, 'input', (e) => {
         range = e;
         e.type = 'range';
         e.min = 1;
@@ -284,7 +277,7 @@ class V2Repeat extends V2AppSection {
     {
       let range = null;
 
-      new V2AppMenu(this.#element, (menu) => {
+      new V2AppMenu(this.canvas, (menu) => {
         menu.element.classList.add('full');
 
         menu.addElement('span', (e) => {
@@ -332,7 +325,7 @@ class V2Repeat extends V2AppSection {
         });
       });
 
-      V2App.addElement(this.#element, 'input', (e) => {
+      V2App.addElement(this.canvas, 'input', (e) => {
         range = e;
         e.type = 'range';
         e.min = 1;
@@ -360,7 +353,7 @@ class V2Repeat extends V2AppSection {
         text.textContent = this.#run.lengthMsec + ' ms';
       };
 
-      new V2AppMenu(this.#element, (menu) => {
+      new V2AppMenu(this.canvas, (menu) => {
         menu.element.classList.add('full');
 
         menu.addElement('span', (e) => {
@@ -393,7 +386,7 @@ class V2Repeat extends V2AppSection {
         });
       });
 
-      V2App.addElement(this.#element, 'input', (e) => {
+      V2App.addElement(this.canvas, 'input', (e) => {
         range = e;
         e.type = 'range';
         e.min = 1;
@@ -432,7 +425,7 @@ class V2Repeat extends V2AppSection {
         text.textContent = this.#run.beatMsec + ' ms';
       };
 
-      new V2AppMenu(this.#element, (menu) => {
+      new V2AppMenu(this.canvas, (menu) => {
         menu.element.classList.add('full');
 
         menu.addElement('span', (e) => {
@@ -465,7 +458,7 @@ class V2Repeat extends V2AppSection {
         });
       });
 
-      V2App.addElement(this.#element, 'input', (e) => {
+      V2App.addElement(this.canvas, 'input', (e) => {
         range = e;
         e.type = 'range';
         e.min = 0;
@@ -496,7 +489,7 @@ class V2Repeat extends V2AppSection {
         text.textContent = this.#run.pauseMsec + ' ms';
       };
 
-      new V2AppMenu(this.#element, (menu) => {
+      new V2AppMenu(this.canvas, (menu) => {
         menu.element.classList.add('full');
 
         menu.addElement('span', (e) => {
@@ -530,7 +523,7 @@ class V2Repeat extends V2AppSection {
         });
       });
 
-      V2App.addElement(this.#element, 'input', (e) => {
+      V2App.addElement(this.canvas, 'input', (e) => {
         range = e;
         e.type = 'range';
         e.min = 0;

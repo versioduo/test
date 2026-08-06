@@ -1,33 +1,26 @@
 class V2System extends V2AppSection {
   #device = null;
-  #element = null;
   #json = null;
 
   constructor(device) {
     super('sysex', '--screwdriver-wrench', 'System', 'Send System Messages');
     this.#device = device;
 
-    V2App.addElement(this.canvas, 'div', (e) => {
-      this.#element = e;
-      e.id = this.id + '.element';
-    });
-
     this.#device.addNotifier('show', () => {
+      this.removeSection();
+      this.addSection();
       this.#show();
-      this.attach();
     });
 
     this.#device.addNotifier('reset', () => {
-      this.detach();
-      while (this.#element.firstChild)
-        this.#element.firstChild.remove();
+      this.removeSection();
     });
 
     return Object.seal(this);
   }
 
   #show() {
-    new V2AppMenu(this.#element, (menu) => {
+    new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('button', (e) => {
         e.textContent = 'Reset';
         e.addEventListener('click', () => {
@@ -36,7 +29,7 @@ class V2System extends V2AppSection {
       });
     });
 
-    new V2AppMenu(this.#element, (menu) => {
+    new V2AppMenu(this.canvas, (menu) => {
       menu.element.classList.add('full');
 
       menu.addElement('button', (e) => {
