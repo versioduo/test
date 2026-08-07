@@ -1,8 +1,7 @@
 class V2Device extends V2Connection {
-  constructor(log, connect) {
-    super(log, connect);
-
-    return Object.seal(this);
+  constructor(app, log, connect) {
+    super(app, log, connect);
+    Object.seal(this);
   }
 
   connect(device) {
@@ -12,8 +11,7 @@ class V2Device extends V2Connection {
     }
 
     this.device.disconnect();
-    for (const notifier of this.notifiers.reset)
-      notifier();
+    this.app.callSections('reset');
 
     this.device.input = device.in;
     this.device.output = device.out;
@@ -23,16 +21,13 @@ class V2Device extends V2Connection {
     if (this.device.input)
       this.device.input.onmidimessage = this.device.handleMessage.bind(this.device);
 
-    for (const notifier of this.notifiers.show)
-      notifier();
+    this.app.callSections('show');
   }
 
   disconnect() {
     this.device.disconnect();
     this.select.setDisconnected();
-
-    for (const notifier of this.notifiers.reset)
-      notifier();
+    this.app.callSections('reset');
   }
 
   sendReset() {

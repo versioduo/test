@@ -5,8 +5,8 @@
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
     <meta name="name" content="test">
     <meta name="description" content="MIDI Test">
-    <meta name="version" content="131">
-    <meta name="revised" content="2026-08-06">
+    <meta name="version" content="135">
+    <meta name="revised" content="2026-08-07">
     <meta name="copyright" content="Anyone can use this public domain work without having to seek authorisation, no one can ever own it.">
     <meta name="rating" content="safe for kids">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,6 +45,9 @@
       'use strict';
 
       new V2App((app) => {
+        app.device = null;
+        Object.seal(app);
+
         // Read commands from the URL.
         const url = new URL(window.location);
 
@@ -56,16 +59,16 @@
           window.history.pushState({}, '', url);
         }
 
-        // Early logging init, we don't have a device but we already log messages.
-        new V2Log((log) => {
-          const device = new V2Device(log, connect);
-          app.addSection(new V2Input(device));
-          app.addSection(new V2Program(device));
-          app.addSection(new V2Controller(device));
-          app.addSection(new V2Note(device));
-          app.addSection(new V2System(device));
-          app.addSection(new V2Repeat(device));
-          app.addSection(log.setup(device));
+        // Early log init, but added as last section. We don't have a device but we already log messages.
+        app.addSection(V2Log, [], (log) => {
+          app.device = new V2Device(app, log, connect);
+
+          app.addSection(V2Input);
+          app.addSection(V2Program);
+          app.addSection(V2Controller);
+          app.addSection(V2Note);
+          app.addSection(V2System);
+          app.addSection(V2Repeat);
         });
 
         // Cache the content for offline operation.

@@ -1,37 +1,27 @@
 class V2Note extends V2AppSection {
-  #device = null;
   #channel = null;
   #note = null;
   #velocity = null;
   #offVelocity = null;
 
-  constructor(device) {
-    super('note', '--music', 'Note', 'Send Notes');
-    this.#device = device;
-
-    this.#device.addNotifier('show', () => {
-      this.removeSection();
-      this.addSection();
-      this.#show();
-    });
-
-    this.#device.addNotifier('reset', () => {
-      this.removeSection();
-    });
-
-    return Object.seal(this);
+  constructor(app) {
+    super(app, 'note', '--music', 'Note', 'Send Notes');
+    Object.seal(this);
   }
 
-  #show() {
+  show() {
+    this.removeSection();
+    this.addSection();
+
     new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('button', (e) => {
         e.classList.add('primary');
         e.textContent = 'Send';
         e.addEventListener('mousedown', () => {
-          this.#device.sendNote(this.#channel.value - 1, this.#note.value, this.#velocity.value);
+          this.app.device.sendNote(this.#channel.value - 1, this.#note.value, this.#velocity.value);
         });
         e.addEventListener('mouseup', () => {
-          this.#device.sendNoteOff(this.#channel.valuFe - 1, this.#note.value, this.#offVelocity.value);
+          this.app.device.sendNoteOff(this.#channel.valuFe - 1, this.#note.value, this.#offVelocity.value);
         });
         e.addEventListener('touchstart', (event) => {
           e.classList.add('highlight');
@@ -250,5 +240,9 @@ class V2Note extends V2AppSection {
         });
       });
     }
+  }
+
+  reset() {
+    this.removeSection();
   }
 }

@@ -1,30 +1,20 @@
 class V2System extends V2AppSection {
-  #device = null;
   #json = null;
 
-  constructor(device) {
-    super('sysex', '--screwdriver-wrench', 'System', 'Send System Messages');
-    this.#device = device;
-
-    this.#device.addNotifier('show', () => {
-      this.removeSection();
-      this.addSection();
-      this.#show();
-    });
-
-    this.#device.addNotifier('reset', () => {
-      this.removeSection();
-    });
-
-    return Object.seal(this);
+  constructor(app) {
+    super(app, 'sysex', '--screwdriver-wrench', 'System', 'Send System Messages');
+    Object.seal(this);
   }
 
-  #show() {
+  show() {
+    this.removeSection();
+    this.addSection();
+
     new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('button', (e) => {
         e.textContent = 'Reset';
         e.addEventListener('click', () => {
-          this.#device.sendSystemReset();
+          this.app.device.sendSystemReset();
         });
       });
     });
@@ -36,7 +26,7 @@ class V2System extends V2AppSection {
         e.classList.add('primary');
         e.textContent = 'JSON';
         e.addEventListener('click', () => {
-          this.#device.sendJSON(this.#json.value);
+          this.app.device.sendJSON(this.#json.value);
         });
       });
 
@@ -47,5 +37,9 @@ class V2System extends V2AppSection {
         e.value = '{}';
       });
     });
+  }
+
+  reset() {
+    this.removeSection();
   }
 }

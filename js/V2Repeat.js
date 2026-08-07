@@ -3,7 +3,6 @@ class V2Repeat extends V2AppSection {
   #stopButton = null;
   #notify = null;
   #danger = false;
-  #device = null;
   #channel = null;
   #note = Object.seal({
     element: null,
@@ -37,24 +36,15 @@ class V2Repeat extends V2AppSection {
     note: null
   });
 
-  constructor(device) {
-    super('repeat', '--rotate', 'Repeat', 'Send Notes in a Loop');
-    this.#device = device;
-
-    this.#device.addNotifier('show', () => {
-      this.removeSection();
-      this.addSection();
-      this.#show();
-    });
-
-    this.#device.addNotifier('reset', () => {
-      this.removeSection();
-    });
-
-    return Object.seal(this);
+  constructor(app) {
+    super(app, 'repeat', '--rotate', 'Repeat', 'Send Notes in a Loop');
+    Object.seal(this);
   }
 
-  #show() {
+  show() {
+    this.removeSection();
+    this.addSection();
+
     new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('button', (e) => {
         this.#stopButton = e;
@@ -544,7 +534,7 @@ class V2Repeat extends V2AppSection {
     if (this.#run.timer !== null)
       clearTimeout(this.#run.timer);
 
-    super.reset();
+    this.removeSection();
   }
 
   #playNote() {
@@ -554,14 +544,14 @@ class V2Repeat extends V2AppSection {
     // Clear stilll running note.
     if (this.#run.noteOff[note]) {
       clearTimeout(this.#run.noteOff[note]);
-      this.#device.sendNoteOff(channel, note);
+      this.app.device.sendNoteOff(channel, note);
     }
 
-    this.#device.sendNote(channel, note, this.#velocity.value);
+    this.app.device.sendNote(channel, note, this.#velocity.value);
 
     this.#run.noteOff[note] = setTimeout(() => {
       this.#run.noteOff[note] = null;
-      this.#device.sendNoteOff(channel, note);
+      this.app.device.sendNoteOff(channel, note);
     }, this.#run.lengthMsec);
   }
 

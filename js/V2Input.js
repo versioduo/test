@@ -1,5 +1,4 @@
 class V2Input extends V2AppSection {
-  #device = null;
   #wakeLock = null;
   #lock = null;
   #select = null;
@@ -7,55 +6,15 @@ class V2Input extends V2AppSection {
   #channel = null;
   #transpose = null;
 
-  constructor(device) {
-    super('input', '--right-to-bracket', 'Input', 'Listen to Events from another Device');
-    this.#device = device;
-
-    this.#device.addNotifier('show', () => {
-      this.removeSection();
-      this.addSection();
-      this.#show();
-    });
-
-    this.#device.addNotifier('reset', () => {
-      this.removeSection();
-    });
-
-    return Object.seal(this);
+  constructor(app) {
+    super(app, 'input', '--right-to-bracket', 'Input', 'Listen to Events from another Device');
+    Object.seal(this);
   }
 
-  #updateSelect() {
-    let devices = this.#device.getMIDI().getDevices('input');
+  show() {
+    this.removeSection();
+    this.addSection();
 
-    // Remove the device we are connected to.
-    devices.delete(this.#device.getDevice().getID());
-
-    this.#select.update(devices);
-  }
-
-  #connect(device) {
-    if (this.#inputDevice)
-      this.#inputDevice.disconnect();
-
-    this.#inputDevice.input = device.in;
-    this.#inputDevice.output = device.out;
-    this.#select.setConnected();
-
-    // Dispatch incoming messages to V2MIDIDevice.
-    this.#inputDevice.input.onmidimessage = this.#inputDevice.handleMessage.bind(this.#inputDevice);
-  }
-
-  #releaseWakeLock() {
-    if (!this.#wakeLock)
-      return;
-
-    this.#wakeLock.release();
-    this.#wakeLock = null;
-
-    this.#lock.textContent = 'Lock';
-  }
-
-  #show() {
     new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('button', (e) => {
         this.#lock = e;
@@ -172,12 +131,43 @@ class V2Input extends V2AppSection {
           break;
       }
 
-      this.#device.getDevice().sendMessage(message);
+      this.app.device.getDevice().sendMessage(message);
     });
   }
 
-  #reset() {
+  reset() {
     this.#select = null;
-    super.reset();
+    this.removeSection();
+  }
+
+  #updateSelect() {
+    let devices = this.app.device.getMIDI().getDevices('input');
+
+    // Remove the device we are connected to.
+    devices.delete(this.app.device.getDevice().getID());
+
+    this.#select.update(devices);
+  }
+
+  #connect(device) {
+    if (this.#inputDevice)
+      this.#inputDevice.disconnect();
+
+    this.#inputDevice.input = device.in;
+    this.#inputDevice.output = device.out;
+    this.#select.setConnected();
+
+    // Dispatch incoming messages to V2MIDIDevice.
+    this.#inputDevice.input.onmidimessage = this.#inputDevice.handleMessage.bind(this.#inputDevice);
+  }
+
+  #releaseWakeLock() {
+    if (!this.#wakeLock)
+      return;
+
+    this.#wakeLock.release();
+    this.#wakeLock = null;
+
+    this.#lock.textContent = 'Lock';
   }
 }

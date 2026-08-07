@@ -1,35 +1,25 @@
 class V2Program extends V2AppSection {
-  #device = null;
   #channel = null;
   #program = null;
   #bank = null;
 
-  constructor(device) {
-    super('program', '--guitar', 'Program', 'Send MIDI Program Changes');
-    this.#device = device;
-
-     this.#device.addNotifier('show', () => {
-      this.removeSection();
-      this.addSection();
-      this.#show();
-    });
-
-    this.#device.addNotifier('reset', () => {
-      this.removeSection();
-    });
-
-    return Object.seal(this);
+  constructor(app) {
+    super(app, 'program', '--guitar', 'Program', 'Send MIDI Program Changes');
+    Object.seal(this);
   }
 
-  #show() {
+  show() {
+    this.removeSection();
+    this.addSection();
+
     new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('button', (e) => {
         e.classList.add('primary');
         e.textContent = 'Send';
         e.addEventListener('click', () => {
-          this.#device.sendControlChange(this.#channel.value - 1, V2MIDI.CC.bankSelect, 0);
-          this.#device.sendControlChange(this.#channel.value - 1, V2MIDI.CC.bankSelectLSB, this.#bank.value - 1);
-          this.#device.sendProgramChange(this.#channel.value - 1, this.#program.value - 1);
+          this.app.device.sendControlChange(this.#channel.value - 1, V2MIDI.CC.bankSelect, 0);
+          this.app.device.sendControlChange(this.#channel.value - 1, V2MIDI.CC.bankSelectLSB, this.#bank.value - 1);
+          this.app.device.sendProgramChange(this.#channel.value - 1, this.#program.value - 1);
         });
       });
     });
@@ -152,5 +142,9 @@ class V2Program extends V2AppSection {
         });
       });
     }
+  }
+
+  reset() {
+    this.removeSection();
   }
 }

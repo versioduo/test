@@ -1,39 +1,29 @@
 class V2Controller extends V2AppSection {
-  #device = null;
   #channel = null;
   #controller = null;
   #value = null;
 
-  constructor(device) {
-    super('controller', '--sliders', 'Controller', 'Send Control Changes');
-    this.#device = device;
-
-    this.#device.addNotifier('show', () => {
-      this.removeSection();
-      this.addSection();
-      this.#show();
-    });
-
-    this.#device.addNotifier('reset', () => {
-      this.removeSection();
-    });
-
-    return Object.seal(this);
+  constructor(app) {
+    super(app, 'controller', '--sliders', 'Controller', 'Send Control Changes');
+    Object.seal(this);
   }
 
-  #show() {
+  show() {
+    this.removeSection();
+    this.addSection();
+
     new V2AppMenu(this.canvas, (menu) => {
       menu.addElement('button', (e) => {
         e.textContent = 'Notes Off';
         e.addEventListener('click', () => {
-          this.#device.sendControlChange(this.#channel.value - 1, V2MIDI.CC.allNotesOff, 0);
+          this.app.device.sendControlChange(this.#channel.value - 1, V2MIDI.CC.allNotesOff, 0);
         });
       });
 
       menu.addElement('button', (e) => {
         e.textContent = 'Controllers Off';
         e.addEventListener('click', () => {
-          this.#device.sendControlChange(this.#channel.value - 1, V2MIDI.CC.resetAllControllers, 0);
+          this.app.device.sendControlChange(this.#channel.value - 1, V2MIDI.CC.resetAllControllers, 0);
         });
       });
 
@@ -41,7 +31,7 @@ class V2Controller extends V2AppSection {
         e.classList.add('primary');
         e.textContent = 'Send';
         e.addEventListener('click', () => {
-          this.#device.sendControlChange(this.#channel.value - 1, this.#controller.value, this.#value.value);
+          this.app.device.sendControlChange(this.#channel.value - 1, this.#controller.value, this.#value.value);
         });
       });
     });
@@ -165,4 +155,8 @@ class V2Controller extends V2AppSection {
       });
     }
   }
+
+  reset() {
+    this.removeSection();
+  };
 }
