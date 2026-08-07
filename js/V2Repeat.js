@@ -531,7 +531,7 @@ class V2Repeat extends V2AppSection {
   }
 
   reset() {
-    if (this.#run.timer !== null)
+    if (this.#run.timer)
       clearTimeout(this.#run.timer);
 
     this.removeSection();
@@ -541,7 +541,7 @@ class V2Repeat extends V2AppSection {
     const channel = this.#channel.value - 1;
     const note = this.#run.note;
 
-    // Clear stilll running note.
+    // Clear still running note.
     if (this.#run.noteOff[note]) {
       clearTimeout(this.#run.noteOff[note]);
       this.app.device.sendNoteOff(channel, note);
@@ -588,7 +588,7 @@ class V2Repeat extends V2AppSection {
   #start() {
     this.#notify.clear();
 
-    if (this.#run.timer !== null) {
+    if (this.#run.timer) {
       clearTimeout(this.#run.timer);
       this.#run.timer = null;
     }
@@ -625,7 +625,7 @@ class V2Repeat extends V2AppSection {
     this.#notify.clear();
     this.#releaseWakeLock();
 
-    if (this.#run.timer !== null) {
+    if (this.#run.timer) {
       clearTimeout(this.#run.timer);
       this.#run.timer = null;
     }
