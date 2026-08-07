@@ -1,5 +1,5 @@
 const name = 'test';
-const version = 135;
+const version = 136;
 const files = [
   './',
   'css/fonts.css',
