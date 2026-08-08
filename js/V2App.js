@@ -5,7 +5,10 @@ function isNull(value) {
 
 class V2App {
   nav = null;
-  url = null;
+  url = Object.seal({
+    connect: null,
+    debug: null
+  });
   #sections = [];
 
   constructor(handler) {
@@ -13,8 +16,29 @@ class V2App {
     if (!this.nav)
       throw Error('V2App: Cannot find <nav>.');
 
-    this.url = new URL(window.location);
+    const url = new URL(window.location);
+    this.url.connect = url.searchParams.get('connect');
+    if (this.url.connect) {
+      // Remove the command, it is only used for the first connection.
+      url.searchParams.delete('connect');
+      window.history.pushState({}, '', url);
+    }
+    this.url.debug = url.searchParams.get('debug');
+
     history.scrollRestoration = 'manual';
+
+    // Intercept hash navigation to switch tabs.
+    navigation.addEventListener("navigate", (e) => {
+      const target = new URL(e.destination.url).hash;
+      if (!target)
+        return;
+
+      const id = document.getElementById(target.substr(1));
+      if (!id || id.nodeName !== 'BUTTON')
+        return;
+
+      id.click();
+    });
 
     if (handler)
       handler(this);
@@ -211,7 +235,6 @@ class V2AppSection {
   canvas = null;
 
   header = Object.seal({
-    element: null,
     icon: null,
     title: null,
     subtitle: null
@@ -226,68 +249,51 @@ class V2AppSection {
 
     this.app = app;
     this.id = id;
-    this.title(icon, title, subtitle);
-    this.canvas = document.createElement('section');
-    this.canvas.id = this.id;
-  }
-
-  title(icon, title, subtitle) {
     this.header.icon = icon || null;
     this.header.title = title || null;
     this.header.subtitle = subtitle || null;
-
-    if (!this.header.element)
-      return;
-
-    this.header.element.replaceChildren();
-
-    if (title) {
-      V2App.addElement(this.header.element, 'h2', (e) => {
-        if (icon)
-          V2App.addElement(e, 'i', (i) => {
-            i.classList.add('icon', icon);
-          });
-
-        e.append(title);
-      });
-    }
-
-    if (subtitle) {
-      V2App.addElement(this.header.element, 'p', (e) => {
-        e.textContent = subtitle;
-      });
-    }
+    this.canvas = document.createElement('section');
+    this.canvas.id = this.id;
   }
 
   addSection() {
     if (this.canvas.parentNode)
       throw Error('V2AppSection: The section #' + this.id + ' is already added.');
 
-    V2App.addElement(this.canvas, 'hgroup', (e) => {
-      this.header.element = e;
+    V2App.addElement(this.canvas, 'hgroup', (hg) => {
+      V2App.addElement(hg, 'h2', (e) => {
+        V2App.addElement(e, 'i', (i) => {
+          i.classList.add('icon', this.header.icon);
+        });
+
+        e.append(this.header.title);
+      });
+
+      if (this.header.subtitle) {
+        V2App.addElement(hg, 'p', (e) => {
+          e.textContent = this.header.subtitle;
+        });
+      }
     });
 
-    if (this.header.title) {
-      this.title(this.header.icon, this.header.title, this.header.subtitle);
-      V2App.addElement(this.app.nav, 'li', (li) => {
-        this.nav.entry = li;
+    V2App.addElement(this.app.nav, 'li', (li) => {
+      this.nav.entry = li;
 
-        V2App.addElement(li, 'a', (e) => {
-          e.href = '#' + this.id;
+      V2App.addElement(li, 'a', (e) => {
+        e.href = '#' + this.id;
 
-          if (this.header.icon)
-            V2App.addElement(e, 'i', (i) => {
-              i.classList.add('icon', this.header.icon);
-            });
+        if (this.header.icon)
+          V2App.addElement(e, 'i', (i) => {
+            i.classList.add('icon', this.header.icon);
+          });
 
-          e.append(this.header.title);
-        });
-
-        V2App.addElement(li, 'ul', (e) => {
-          this.nav.cards = e;
-        });
+        e.append(this.header.title);
       });
-    }
+
+      V2App.addElement(li, 'ul', (e) => {
+        this.nav.cards = e;
+      });
+    });
 
     document.querySelector('main').appendChild(this.canvas);
   }
@@ -298,7 +304,7 @@ class V2AppSection {
     this.canvas.remove();
   }
 
-  addCard(title, id) {
+  addNavigation(title, id) {
     V2App.addElement(this.nav.cards, 'a', (e) => {
       e.href = '#' + id;
       e.append(title);
@@ -386,21 +392,22 @@ class V2AppMenu {
 }
 
 class V2AppTabs {
-  current = null;
   element = null;
+  menu = null;
+  tabs = {};
+  current = null;
 
-  #elementsTabs = null;
-  #tabs = {};
   #notifiers = [];
 
-  constructor(element, handler) {
+  constructor(element, id, handler) {
+    new V2AppMenu(element, (menu) => {
+      menu.element.classList.add('bar');
+      this.menu = menu;
+      this.menu.element.id = id + '.tabs';
+    });
+
     V2App.addElement(element, 'ul', (tabs) => {
       this.element = tabs;
-
-      new V2AppMenu(tabs, (menu) => {
-        menu.element.classList.add('bar');
-        this.#elementsTabs = menu;
-      });
     });
 
     if (handler)
@@ -414,9 +421,17 @@ class V2AppTabs {
   }
 
   add(name, icon, text, handler) {
-    this.#tabs[name] = {};
+    this.tabs[name] = Object.seal({
+      text: text,
+      id: this.menu.element.id + '.' + name,
+      tab: null,
+      canvas: null
+    });
 
-    this.#elementsTabs.addElement('button', (e) => {
+    this.menu.addElement('button', (e) => {
+      this.tabs[name].tab = e;
+      e.id = this.tabs[name].id;
+
       e.addEventListener('click', () => {
         // Do not switch inactive tabs.
         if (!this.current)
@@ -428,8 +443,8 @@ class V2AppTabs {
       V2App.addElement(e, 'i', (i) => {
         i.classList.add('icon', icon);
       });
+
       e.append(text);
-      this.#tabs[name].tab = e;
     });
 
     V2App.addElement(this.element, 'li', (e) => {
@@ -437,7 +452,7 @@ class V2AppTabs {
         handler(e);
 
       e.style.display = 'none';
-      this.#tabs[name].canvas = e;
+      this.tabs[name].canvas = e;
     });
   }
 
@@ -447,15 +462,15 @@ class V2AppTabs {
 
     this.current = null;
 
-    for (const id of Object.keys(this.#tabs)) {
+    for (const id of Object.keys(this.tabs)) {
       if (id === name) {
-        this.#tabs[id].tab.classList.add('info');
-        this.#tabs[id].canvas.style.display = '';
+        this.tabs[id].tab.classList.add('info');
+        this.tabs[id].canvas.style.display = '';
         this.current = name;
 
       } else {
-        this.#tabs[id].tab.classList.remove('info');
-        this.#tabs[id].canvas.style.display = 'none';
+        this.tabs[id].tab.classList.remove('info');
+        this.tabs[id].canvas.style.display = 'none';
       }
     }
 
