@@ -16,14 +16,14 @@ class V2Controller extends V2AppSection {
       menu.addElement('button', (e) => {
         e.textContent = 'Notes Off';
         e.addEventListener('click', () => {
-          this.app.device.sendControlChange(this.#channel.value - 1, V2MIDI.CC.allNotesOff, 0);
+          this.app.main.sendControlChange(this.#channel.value - 1, V2MIDI.CC.allNotesOff, 0);
         });
       });
 
       menu.addElement('button', (e) => {
         e.textContent = 'Controllers Off';
         e.addEventListener('click', () => {
-          this.app.device.sendControlChange(this.#channel.value - 1, V2MIDI.CC.resetAllControllers, 0);
+          this.app.main.sendControlChange(this.#channel.value - 1, V2MIDI.CC.resetAllControllers, 0);
         });
       });
 
@@ -31,7 +31,7 @@ class V2Controller extends V2AppSection {
         e.classList.add('primary');
         e.textContent = 'Send';
         e.addEventListener('click', () => {
-          this.app.device.sendControlChange(this.#channel.value - 1, this.#controller.value, this.#value.value);
+          this.app.main.sendControlChange(this.#channel.value - 1, this.#controller.value, this.#value.value);
         });
       });
     });
@@ -51,6 +51,32 @@ class V2Controller extends V2AppSection {
           });
         }
       });
+
+      menu.addElement('button', (e) => {
+        V2App.addElement(e, 'i', (i) => {
+          i.classList.add('icon', '--nospace', '--minus');
+        });
+        e.addEventListener('click', () => {
+          if (this.#channel.selectedIndex === 0)
+            return;
+
+          this.#channel.selectedIndex--;
+          this.#channel.dispatchEvent(new Event('change'));
+        });
+      });
+
+      menu.addElement('button', (e) => {
+        V2App.addElement(e, 'i', (i) => {
+          i.classList.add('icon', '--nospace', '--plus');
+        });
+        e.addEventListener('click', () => {
+          if (this.#channel.selectedIndex === this.#channel.options.length - 1)
+            return;
+
+          this.#channel.selectedIndex++;
+          this.#channel.dispatchEvent(new Event('change'));
+        });
+      });
     });
 
     {
@@ -67,10 +93,6 @@ class V2Controller extends V2AppSection {
         menu.element.classList.add('full');
 
         menu.addElement('span', (e) => {
-          e.textContent = 'Controller';
-        });
-
-        menu.addElement('span', (e) => {
           e.classList.add('grow');
           text = e;
         });
@@ -83,6 +105,26 @@ class V2Controller extends V2AppSection {
           e.max = 127;
           e.addEventListener('input', () => {
             update(e.value);
+          });
+        });
+
+        menu.addElement('button', (e) => {
+          V2App.addElement(e, 'i', (i) => {
+            i.classList.add('icon', '--nospace', '--minus');
+          });
+          e.addEventListener('click', () => {
+            this.#controller.stepDown();
+            this.#controller.dispatchEvent(new Event('input'));
+          });
+        });
+
+        menu.addElement('button', (e) => {
+          V2App.addElement(e, 'i', (i) => {
+            i.classList.add('icon', '--nospace', '--plus');
+          });
+          e.addEventListener('click', () => {
+            this.#controller.stepUp();
+            this.#controller.dispatchEvent(new Event('input'));
           });
         });
       });

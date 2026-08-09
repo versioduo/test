@@ -1,5 +1,5 @@
 const name = 'test';
-const version = 148;
+const version = 156;
 const files = [
   './',
   'css/fonts.css',
@@ -8,13 +8,13 @@ const files = [
   'icons/logo-maskable.svg',
   'icons/logo.svg',
   'js/V2App.js',
-  'js/V2Connection.js',
   'js/V2Controller.js',
   'js/V2Device.js',
   'js/V2Input.js',
   'js/V2Log.js',
   'js/V2MIDI.js',
   'js/V2MIDISelect.js',
+  'js/V2Main.js',
   'js/V2Note.js',
   'js/V2Program.js',
   'js/V2Repeat.js',

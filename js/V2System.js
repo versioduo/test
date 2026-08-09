@@ -14,7 +14,7 @@ class V2System extends V2AppSection {
       menu.addElement('button', (e) => {
         e.textContent = 'Reset';
         e.addEventListener('click', () => {
-          this.app.device.sendSystemReset();
+          this.app.main.sendSystemReset();
         });
       });
     });
@@ -26,7 +26,7 @@ class V2System extends V2AppSection {
         e.classList.add('primary');
         e.textContent = 'JSON';
         e.addEventListener('click', () => {
-          this.app.device.sendJSON(this.#json.value);
+          this.app.main.sendJSON(this.#json.value);
         });
       });
 

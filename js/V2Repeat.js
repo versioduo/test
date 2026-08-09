@@ -99,6 +99,32 @@ class V2Repeat extends V2AppSection {
           });
         }
       });
+
+      menu.addElement('button', (e) => {
+        V2App.addElement(e, 'i', (i) => {
+          i.classList.add('icon', '--nospace', '--minus');
+        });
+        e.addEventListener('click', () => {
+          if (this.#channel.selectedIndex === 0)
+            return;
+
+          this.#channel.selectedIndex--;
+          this.#channel.dispatchEvent(new Event('change'));
+        });
+      });
+
+      menu.addElement('button', (e) => {
+        V2App.addElement(e, 'i', (i) => {
+          i.classList.add('icon', '--nospace', '--plus');
+        });
+        e.addEventListener('click', () => {
+          if (this.#channel.selectedIndex === this.#channel.options.length - 1)
+            return;
+
+          this.#channel.selectedIndex++;
+          this.#channel.dispatchEvent(new Event('change'));
+        });
+      });
     });
 
     {
@@ -544,14 +570,14 @@ class V2Repeat extends V2AppSection {
     // Clear still running note.
     if (this.#run.noteOff[note]) {
       clearTimeout(this.#run.noteOff[note]);
-      this.app.device.sendNoteOff(channel, note);
+      this.app.main.sendNoteOff(channel, note);
     }
 
-    this.app.device.sendNote(channel, note, this.#velocity.value);
+    this.app.main.sendNote(channel, note, this.#velocity.value);
 
     this.#run.noteOff[note] = setTimeout(() => {
       this.#run.noteOff[note] = null;
-      this.app.device.sendNoteOff(channel, note);
+      this.app.main.sendNoteOff(channel, note);
     }, this.#run.lengthMsec);
   }
 

@@ -18,10 +18,10 @@ class V2Note extends V2AppSection {
         e.classList.add('primary');
         e.textContent = 'Send';
         e.addEventListener('mousedown', () => {
-          this.app.device.sendNote(this.#channel.value - 1, this.#note.value, this.#velocity.value);
+          this.app.main.sendNote(this.#channel.value - 1, this.#note.value, this.#velocity.value);
         });
         e.addEventListener('mouseup', () => {
-          this.app.device.sendNoteOff(this.#channel.valuFe - 1, this.#note.value, this.#offVelocity.value);
+          this.app.main.sendNoteOff(this.#channel.valuFe - 1, this.#note.value, this.#offVelocity.value);
         });
         e.addEventListener('touchstart', (event) => {
           e.classList.add('highlight');
@@ -53,6 +53,32 @@ class V2Note extends V2AppSection {
           });
         }
       });
+
+      menu.addElement('button', (e) => {
+        V2App.addElement(e, 'i', (i) => {
+          i.classList.add('icon', '--nospace', '--minus');
+        });
+        e.addEventListener('click', () => {
+          if (this.#channel.selectedIndex === 0)
+            return;
+
+          this.#channel.selectedIndex--;
+          this.#channel.dispatchEvent(new Event('change'));
+        });
+      });
+
+      menu.addElement('button', (e) => {
+        V2App.addElement(e, 'i', (i) => {
+          i.classList.add('icon', '--nospace', '--plus');
+        });
+        e.addEventListener('click', () => {
+          if (this.#channel.selectedIndex === this.#channel.options.length - 1)
+            return;
+
+          this.#channel.selectedIndex++;
+          this.#channel.dispatchEvent(new Event('change'));
+        });
+      });
     });
 
     {
@@ -72,11 +98,6 @@ class V2Note extends V2AppSection {
 
       new V2AppMenu(this.canvas, (menu) => {
         menu.element.classList.add('full');
-
-        menu.addElement('span', (e) => {
-          e.textContent = 'Note';
-          e.classList.add('label');
-        });
 
         menu.addElement('span', (e) => {
           e.classList.add('grow');
